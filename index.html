@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#08090c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>AURELIA // Haute Horlogerie 3D Exploded Mechanical Watch</title>
+  <meta name="description" content="Interactive 3D Haute Horlogerie Mechanical Watch Disassembly and Exploded View Animation with live working movement, balance wheel kinematics, and gear train.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='none' stroke='%23d4af37' stroke-width='6'/><line x1='50' y1='50' x2='50' y2='20' stroke='%23d4af37' stroke-width='6'/><line x1='50' y1='50' x2='75' y2='50' stroke='%23d4af37' stroke-width='4'/></svg>">
+</head>
+<body>
+
+  <!-- 3D WebGL Canvas Viewport (Full interactive rotate & zoom even while unassembled) -->
+  <div id="webgl-container"></div>
+
+  <!-- Dynamic 3D Annotation Pins in Screen Coordinates (Passes through mouse events) -->
+  <div id="annotations-container"></div>
+
+  <!-- Mobile Drawer Backdrop Overlay -->
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+
+  <!-- UI HUD Overlay -->
+  <div class="ui-overlay">
+    
+    <!-- TOP NAVIGATION -->
+    <header class="top-bar">
+      <div class="brand-section ui-interactive">
+        <div class="brand-logo">
+          <svg class="brand-symbol" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/>
+            <polyline points="12 6 12 12 16 14"/>
+            <path d="M12 2v2M12 20v2M2 12h2M20 12h2"/>
+          </svg>
+          <span class="brand-title">Aurelia</span>
+        </div>
+        <div class="brand-tagline">Haute Horlogerie • Atelier Genève</div>
+      </div>
+
+      <!-- Center Hero Model Banner -->
+      <div class="model-hero-badge ui-interactive">
+        <div class="model-hero-title" id="model-hero-title">Calibre 01: Royal Skeleton Tourbillon</div>
+        <div class="model-hero-subtitle" id="model-hero-subtitle">18K Rose Gold & Flame-Blued Steel • Flying Tourbillon</div>
+      </div>
+
+      <!-- Right Header: Ambiance, Clock & Sound -->
+      <div class="header-actions ui-interactive">
+        <!-- Background Ambiance Customizer Button -->
+        <button class="btn-utility" id="btn-ambiance-toggle" title="Customize Studio Background & Lighting">
+          <span class="utility-icon">🎨</span>
+          <span>Ambiance</span>
+        </button>
+
+        <div class="digital-clock-card">
+          <div class="digital-time" id="digital-time">
+            <span class="time-main">00:00:00</span><span class="time-ms">.00</span>
+          </div>
+          <div class="digital-date" id="digital-date">WED, 03 OCT 2026</div>
+        </div>
+
+        <button class="btn-utility" id="sound-toggle" title="Toggle Mechanical Escapement Sound (M)">
+          <span class="sound-icon">🔇</span>
+          <span>Acoustics</span>
+        </button>
+
+        <!-- Mobile Controls Toggle Button -->
+        <button class="btn-utility btn-mobile-menu" id="btn-mobile-menu" title="Atelier Controls & Settings">
+          <span class="utility-icon">⚙️</span>
+          <span>Controls</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- TOP CENTER QUICK LAYER SELECTOR -->
+    <div class="layer-pills-bar ui-interactive" id="layer-pills-bar">
+      <div class="layer-pills-list" id="layer-pills-list"></div>
+    </div>
+
+    <!-- LEFT SIDEBAR: TIME ENGINE, CAMERA & TELEMETRY (Responsive Slide-Out on Mobile) -->
+    <aside class="left-controls ui-interactive" id="left-controls">
+      
+      <!-- Mobile Drawer Header with Close Button -->
+      <div class="mobile-drawer-header">
+        <div class="mobile-drawer-title">
+          <span style="color: var(--accent-gold);">●</span> Atelier Controls & Vantage
+        </div>
+        <button class="btn-close" id="close-left-drawer" title="Close Controls">✕</button>
+      </div>
+      
+      <!-- Time Engine & World Zones -->
+      <div class="hud-panel">
+        <div class="hud-panel-title">
+          <span>Horology Engine</span>
+          <span style="font-size: 10px; color: var(--accent-gold);">● LIVE</span>
+        </div>
+        
+        <label style="font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; display: block;">Timezone</label>
+        <select class="luxury-select" id="timezone-select">
+          <option value="LOCAL">Local System Time</option>
+          <option value="GENEVA">Geneva / Paris (CET)</option>
+          <option value="LONDON">London (GMT / BST)</option>
+          <option value="TOKYO">Tokyo (JST)</option>
+          <option value="NEWYORK">New York (EST)</option>
+          <option value="DUBAI">Dubai (GST)</option>
+          <option value="SINGAPORE">Singapore (SGT)</option>
+        </select>
+
+        <div style="margin-top: 12px;">
+          <label style="font-size: 10px; color: var(--text-dim); text-transform: uppercase;">Simulation Speed</label>
+          <div class="speed-button-group">
+            <button class="speed-btn" data-speed="0.1" title="Slow-Motion Balance & Escapement">0.1×</button>
+            <button class="speed-btn active" data-speed="1.0" title="Real-Time Swiss Rate">1×</button>
+            <button class="speed-btn" data-speed="10.0" title="10x Fast Forward">10×</button>
+            <button class="speed-btn" data-speed="60.0" title="1 Minute per Second">60×</button>
+          </div>
+        </div>
+
+        <!-- Chronograph Complication -->
+        <div style="margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px;">
+          <div class="chrono-box">
+            <span class="chrono-time" id="chrono-display">00:00.00</span>
+            <div class="chrono-btns">
+              <button class="btn-chrono" id="btn-chrono-toggle">Start</button>
+              <button class="btn-chrono" id="btn-chrono-reset">Reset</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Camera View Angle Presets & Reset -->
+      <div class="hud-panel">
+        <div class="hud-panel-title">
+          <span>Camera Vantage</span>
+          <button id="btn-reset-camera" class="btn-mini-reset" title="Reset Camera Center & Zoom">Re-center</button>
+        </div>
+        <div class="view-button-list">
+          <button class="view-btn active" data-view="front">
+            <span style="color: var(--accent-gold);">◉</span> Dial Front (Face)
+          </button>
+          <button class="view-btn" data-view="exploded">
+            <span style="color: var(--accent-gold);">⬡</span> Exploded 3/4 Perspective
+          </button>
+          <button class="view-btn" data-view="escapement">
+            <span style="color: var(--accent-ruby);">◆</span> Escapement & Balance Macro
+          </button>
+          <button class="view-btn" data-view="caseback">
+            <span style="color: var(--accent-cyan);">◈</span> Exhibition Rotor Back
+          </button>
+          <button class="view-btn" data-view="profile">
+            <span style="color: var(--text-muted);">❙</span> Architectural Profile
+          </button>
+        </div>
+      </div>
+
+      <!-- Butterfly Deployant Bracelet Clasp Controls -->
+      <div class="hud-panel">
+        <div class="hud-panel-title">
+          <span>Butterfly Clasp</span>
+          <span class="clasp-badge latched" id="clasp-status-badge">LATCHED</span>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <button class="btn-clasp-action" id="btn-clasp-toggle" title="Deploy / Latch Butterfly Clasp (C)">
+            <span class="clasp-btn-icon" id="clasp-icon">🔓</span>
+            <span id="clasp-btn-label">Deploy Clasp</span>
+          </button>
+        </div>
+        <div class="slider-container">
+          <div class="slider-header">
+            <span>Clasp Deployment</span>
+            <span class="pct" id="clasp-percentage">0%</span>
+          </div>
+          <input type="range" class="luxury-slider" id="clasp-slider" min="0" max="100" value="0">
+        </div>
+      </div>
+
+      <!-- Calibre Telemetry Specs -->
+      <div class="hud-panel">
+        <div class="hud-panel-title">
+          <span>Calibre AUR-900</span>
+        </div>
+        <div class="movement-telemetry">
+          <div class="telemetry-row">
+            <span class="telemetry-label">Frequency:</span>
+            <span class="telemetry-val">4.0 Hz (28,800 vph)</span>
+          </div>
+          <div class="telemetry-row">
+            <span class="telemetry-label">Jewel Bearings:</span>
+            <span class="telemetry-val">38 Rubis Corindon</span>
+          </div>
+          <div class="telemetry-row">
+            <span class="telemetry-label">Escapement:</span>
+            <span class="telemetry-val">Swiss Inverted Lever</span>
+          </div>
+          <div class="telemetry-row">
+            <span class="telemetry-label">Hairspring:</span>
+            <span class="telemetry-val">Anti-Magnetic Silicon</span>
+          </div>
+          <div class="telemetry-row">
+            <span class="telemetry-label">Power Reserve:</span>
+            <span class="telemetry-val">72 Hours Twin Barrel</span>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- RIGHT SLIDE-OUT HOROLOGICAL INSPECTOR DRAWER -->
+    <div class="inspector-drawer" id="inspector-drawer">
+      <div>
+        <div class="inspector-header">
+          <div>
+            <div class="inspect-category" id="inspect-category">Regulating Organ</div>
+            <div class="inspect-title" id="inspect-title">Glucydur Balance & Hairspring</div>
+            <div class="inspect-french" id="inspect-french">Balancier Glucydur & Spiral Silicium</div>
+          </div>
+          <button class="btn-close" id="close-inspector" title="Close Inspector">✕</button>
+        </div>
+
+        <div class="inspector-body">
+          <div class="spec-block">
+            <div class="spec-title">Metallurgy & Material</div>
+            <div class="spec-val" id="inspect-material">Thermal-Compensated Glucydur with 18k Gold Inertia Weights</div>
+          </div>
+
+          <div class="spec-block">
+            <div class="spec-title">Tolerances & Calibration</div>
+            <div class="spec-val" id="inspect-specs">4.0 Hz (28,800 vph) • Amplitude ±145° • Incabloc Shock Springs</div>
+          </div>
+
+          <div class="spec-block">
+            <div class="spec-title">Horological Significance</div>
+            <p class="inspect-desc" id="inspect-desc">
+              The balance wheel serves as the heartbeat and regulating organ of the mechanical calibre. Its micro-metric gold regulating screws along the rim permit poise adjustment to within 0.001 grams. Even when separated in mid-air, the hairspring expands and contracts in harmonic synchrony with the gear train.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="inspector-footer">
+        <button class="btn-isolate" id="btn-isolate-part">Isolate Component</button>
+      </div>
+    </div>
+
+    <!-- BACKGROUND & AMBIANCE CUSTOMIZATION DRAWER -->
+    <div class="ambiance-drawer" id="ambiance-drawer">
+      <div class="ambiance-header">
+        <div class="ambiance-title">Atelier Ambiance & Lighting</div>
+        <button class="btn-close" id="close-ambiance">✕</button>
+      </div>
+
+      <div class="ambiance-body">
+        <label class="ambiance-label">Atmosphere Presets</label>
+        <div class="bg-themes-grid">
+          <div class="bg-theme-card active" data-bg-theme="obsidian">
+            <div class="swatch" style="background: #08090c;"></div>
+            <span>Obsidian Noir</span>
+          </div>
+          <div class="bg-theme-card" data-bg-theme="atelier">
+            <div class="swatch" style="background: #18100a; border-color: #8c532b;"></div>
+            <span>Wood Atelier</span>
+          </div>
+          <div class="bg-theme-card" data-bg-theme="showroom">
+            <div class="swatch" style="background: #f0f3f8; border-color: #bcc6d4;"></div>
+            <span style="color: #4a5260;">Showroom</span>
+          </div>
+          <div class="bg-theme-card" data-bg-theme="sapphire">
+            <div class="swatch" style="background: #040816; border-color: #1e4bb8;"></div>
+            <span>Midnight Navy</span>
+          </div>
+          <div class="bg-theme-card" data-bg-theme="carbon">
+            <div class="swatch" style="background: #090d14; border-color: #00f0ff;"></div>
+            <span>Cyber Vault</span>
+          </div>
+          <div class="bg-theme-card" data-bg-theme="sunset">
+            <div class="swatch" style="background: #1a0e14; border-color: #ff6699;"></div>
+            <span>Sunset Rosé</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 20px;">
+          <label class="ambiance-label">Custom Background Color</label>
+          <div class="custom-color-row">
+            <input type="color" id="custom-bg-picker" value="#08090c">
+            <span style="font-size: 11px; color: var(--text-muted);">Choose any bespoke tone</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 20px;">
+          <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 6px;">
+            <span class="ambiance-label" style="margin: 0;">Studio Exposure</span>
+          </div>
+          <input type="range" id="bg-brightness-slider" min="0.5" max="2.2" step="0.05" value="1.25" class="luxury-slider">
+        </div>
+      </div>
+    </div>
+
+    <!-- FLOATING MOBILE QUICK DOCK (Smartphones & Tablets) -->
+    <div class="mobile-quick-dock ui-interactive" id="mobile-quick-dock">
+      <button class="dock-btn" id="dock-btn-views" title="Camera Views">
+        <span class="dock-icon">📷</span>
+        <span class="dock-label">Views</span>
+      </button>
+      <button class="dock-btn" id="dock-btn-clasp" title="Butterfly Clasp">
+        <span class="dock-icon">🔓</span>
+        <span class="dock-label">Clasp</span>
+      </button>
+      <button class="dock-btn" id="dock-btn-speed" title="Simulation Speed">
+        <span class="dock-icon">⚡</span>
+        <span class="dock-label">Speed</span>
+      </button>
+      <button class="dock-btn" id="dock-btn-ambiance" title="Atelier Ambiance">
+        <span class="dock-icon">🎨</span>
+        <span class="dock-label">Ambiance</span>
+      </button>
+    </div>
+
+    <!-- BOTTOM SECTION: EXPLODED VIEW DASHBOARD & 8 WATCH COLLECTION CAROUSEL -->
+    <footer class="bottom-bar">
+      
+      <!-- Central Explosion Controller -->
+      <div class="explosion-dashboard ui-interactive">
+        <button class="btn-explode-master" id="btn-explode-toggle">
+          Explode Calibre
+        </button>
+
+        <div class="slider-container">
+          <div class="slider-header">
+            <span>Disassembly Separation</span>
+            <span class="pct" id="explode-percentage">0%</span>
+          </div>
+          <input type="range" class="luxury-slider" id="explode-slider" min="0" max="100" value="0">
+        </div>
+      </div>
+
+      <!-- Expanded Watch Models Carousel (8 Iconic Watches) -->
+      <div class="watch-collection-carousel ui-interactive">
+        
+        <!-- Model 1 -->
+        <div class="model-card active" data-model="ROSE_GOLD">
+          <div class="model-tag">Calibre 01</div>
+          <div class="model-name">Royal Tourbillon</div>
+          <div class="model-material">18K Rose Gold & Blued Steel</div>
+        </div>
+
+        <!-- Model 2 -->
+        <div class="model-card" data-model="STEALTH_CARBON">
+          <div class="model-tag">Calibre 02</div>
+          <div class="model-name">Chronos Stealth DLC</div>
+          <div class="model-material">Forged Carbon & Cyan Lume</div>
+        </div>
+
+        <!-- Model 3 -->
+        <div class="model-card" data-model="PLATINUM_EMERALD">
+          <div class="model-tag">Calibre 03</div>
+          <div class="model-name">Celestial Platinum</div>
+          <div class="model-material">950 Ice Platinum & Emerald</div>
+        </div>
+
+        <!-- Model 4 -->
+        <div class="model-card" data-model="HERITAGE_BRONZE">
+          <div class="model-tag">Calibre 04</div>
+          <div class="model-name">Nautilus Bronze</div>
+          <div class="model-material">Marine CuSn8 & Ivory Complication</div>
+        </div>
+
+        <!-- Model 5: NEW -->
+        <div class="model-card" data-model="COSMIC_METEORITE">
+          <div class="model-tag">Calibre 05</div>
+          <div class="model-name">Starlight Meteorite</div>
+          <div class="model-material">Widmanstätten Iron & Aventurine</div>
+        </div>
+
+        <!-- Model 6: NEW -->
+        <div class="model-card" data-model="MONACO_RACING">
+          <div class="model-tag">Calibre 06</div>
+          <div class="model-name">Monaco Grand Prix</div>
+          <div class="model-material">Gulf Orange & Racing Blue Steel</div>
+        </div>
+
+        <!-- Model 7: NEW -->
+        <div class="model-card" data-model="SOVEREIGN_GOLD">
+          <div class="model-tag">Calibre 07</div>
+          <div class="model-name">Sovereign 24K</div>
+          <div class="model-material">Solid 24K Gold & Champagne Guilloché</div>
+        </div>
+
+        <!-- Model 8: NEW -->
+        <div class="model-card" data-model="PHANTOM_CERAMIC">
+          <div class="model-tag">Calibre 08</div>
+          <div class="model-name">Phantom Ceramic</div>
+          <div class="model-material">Zirconium Oxide Matte Blackout</div>
+        </div>
+
+      </div>
+
+    </footer>
+
+    <!-- Keyboard Shortcuts Legend (Desktop) -->
+    <div class="keyboard-tips desktop-only">
+      <kbd>SPACE</kbd> Explode/Assemble &nbsp;•&nbsp; 
+      <kbd>C</kbd> Clasp Open/Close &nbsp;•&nbsp; 
+      <kbd>1-8</kbd> Switch Model &nbsp;•&nbsp; 
+      <kbd>F</kbd> Front &nbsp;•&nbsp; 
+      <kbd>E</kbd> Escapement &nbsp;•&nbsp; 
+      <kbd>R</kbd> Re-center &nbsp;•&nbsp; 
+      <kbd>M</kbd> Mute
+    </div>
+
+    <!-- Touch Gesture Legend (Smartphones & Tablets) -->
+    <div class="touch-tips mobile-only">
+      <span>👆 1-Finger Orbit</span> &nbsp;•&nbsp; 
+      <span>🤏 Pinch Zoom</span> &nbsp;•&nbsp; 
+      <span>🎯 Tap Part to Inspect</span>
+    </div>
+
+  </div>
+
+  <!-- Client Libraries -->
+  <script src="libs/three.min.js"></script>
+  <script>
+    if (typeof THREE === 'undefined') {
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>');
+    }
+  </script>
+
+  <script src="libs/OrbitControls.js"></script>
+  <script>
+    if (typeof THREE.OrbitControls === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"><\/script>');
+    }
+  </script>
+
+  <script src="libs/gsap.min.js"></script>
+  <script>
+    if (typeof gsap === 'undefined') {
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"><\/script>');
+    }
+  </script>
+
+  <!-- Application Modules -->
+  <script src="js/audio-engine.js"></script>
+  <script src="js/mechanics-engine.js"></script>
+  <script src="js/watch-model.js"></script>
+  <script src="js/explosion-system.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
