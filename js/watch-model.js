@@ -128,163 +128,6 @@ class WatchModelBuilder {
     }
     const radialTex = new THREE.CanvasTexture(radialCanvas);
 
-    // 4. Haute Horlogerie Alligator Leather & Hand-Sewn Saddle Stitch Texture (Internet References: Patek / AP / Camille Fournet)
-    const strapCanvas = document.createElement('canvas');
-    strapCanvas.width = 1024;
-    strapCanvas.height = 1024;
-    const sctx = strapCanvas.getContext('2d');
-
-    // Rich deep obsidian-anthracite base
-    sctx.fillStyle = '#161920';
-    sctx.fillRect(0, 0, 1024, 1024);
-
-    // Fine organic leather micro-pore grain
-    const sImgData = sctx.getImageData(0, 0, 1024, 1024);
-    const sData = sImgData.data;
-    for (let i = 0; i < sData.length; i += 4) {
-      const noise = (Math.random() - 0.5) * 14;
-      sData[i] = Math.min(255, Math.max(0, sData[i] + noise));
-      sData[i + 1] = Math.min(255, Math.max(0, sData[i + 1] + noise));
-      sData[i + 2] = Math.min(255, Math.max(0, sData[i + 2] + noise));
-    }
-    sctx.putImageData(sImgData, 0, 0);
-
-    // Realistic Louisiana Alligator scales (large rectangular belly scales in center, pebble scales on flanks)
-    const numRows = 20;
-    const numCols = 8;
-    const rHeight = 1024 / numRows;
-    for (let r = 0; r < numRows; r++) {
-      const sy = r * rHeight;
-      for (let c = 0; c < numCols; c++) {
-        const isBelly = (c >= 2 && c <= 5);
-        const colWidth = isBelly ? 150 : 105;
-        const sx = c * 128 + (isBelly ? 0 : (c < 2 ? 0 : 25));
-
-        const scW = colWidth - 7 - (Math.random() * 4);
-        const scH = rHeight - 6 - (Math.random() * 4);
-        const px = sx + 3.5 + ((Math.random() - 0.5) * 3);
-        const py = sy + 3.0 + ((Math.random() - 0.5) * 3);
-
-        const grad = sctx.createRadialGradient(px + scW * 0.5, py + scH * 0.5, 3, px + scW * 0.5, py + scH * 0.5, scW * 0.75);
-        grad.addColorStop(0, 'rgba(48, 54, 66, 0.95)');
-        grad.addColorStop(0.55, 'rgba(28, 32, 40, 0.92)');
-        grad.addColorStop(0.9, 'rgba(14, 16, 22, 0.98)');
-        grad.addColorStop(1, 'rgba(6, 8, 11, 1)');
-
-        sctx.fillStyle = grad;
-        sctx.beginPath();
-        if (isBelly) {
-          const cornerR = 5;
-          if (sctx.roundRect) sctx.roundRect(px, py, scW, scH, cornerR);
-          else sctx.rect(px, py, scW, scH);
-        } else {
-          if (sctx.ellipse) sctx.ellipse(px + scW / 2, py + scH / 2, scW / 2, scH / 2, 0, 0, Math.PI * 2);
-          else sctx.rect(px, py, scW, scH);
-        }
-        sctx.fill();
-
-        // Delicate micro-highlight on scale rim
-        sctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
-        sctx.lineWidth = 1;
-        sctx.stroke();
-      }
-    }
-
-    // Hot-iron edge creasing groove running parallel to edges
-    [32, 992].forEach(edgeX => {
-      sctx.strokeStyle = 'rgba(0, 0, 0, 0.65)';
-      sctx.lineWidth = 2.5;
-      sctx.beginPath();
-      sctx.moveTo(edgeX, 0);
-      sctx.lineTo(edgeX, 1024);
-      sctx.stroke();
-
-      sctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-      sctx.lineWidth = 1;
-      sctx.beginPath();
-      sctx.moveTo(edgeX + (edgeX < 500 ? 1.5 : -1.5), 0);
-      sctx.lineTo(edgeX + (edgeX < 500 ? 1.5 : -1.5), 1024);
-      sctx.stroke();
-    });
-
-    // Hand-sewn French linen saddle stitches (2.8mm spacing, 25° slant)
-    const stitchSpacing = 28;
-    const stitchLen = 15;
-    const stitchSlant = 0.42; // ~24 deg
-    [54, 970].forEach(stitchX => {
-      for (let sy = 14; sy < 1024; sy += stitchSpacing) {
-        sctx.save();
-        sctx.translate(stitchX, sy);
-        sctx.rotate(stitchSlant);
-
-        // Thread puncture hole shadow
-        sctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-        sctx.beginPath();
-        sctx.ellipse(0, 1.2, stitchLen * 0.5 + 1.2, 3.2, 0, 0, Math.PI * 2);
-        sctx.fill();
-
-        // 3D twisted thread gradient
-        const tGrad = sctx.createLinearGradient(-stitchLen * 0.5, 0, stitchLen * 0.5, 0);
-        tGrad.addColorStop(0, '#baa892');
-        tGrad.addColorStop(0.3, '#f5ebe0');
-        tGrad.addColorStop(0.7, '#dfd2c4');
-        tGrad.addColorStop(1, '#8f7e6a');
-        sctx.fillStyle = tGrad;
-
-        sctx.beginPath();
-        sctx.ellipse(0, 0, stitchLen * 0.5, 2.2, 0, 0, Math.PI * 2);
-        sctx.fill();
-
-        // Fine thread twist texture
-        sctx.strokeStyle = 'rgba(0, 0, 0, 0.28)';
-        sctx.lineWidth = 0.8;
-        for (let tw = -4.5; tw <= 4.5; tw += 2.5) {
-          sctx.beginPath();
-          sctx.moveTo(tw, -1.8);
-          sctx.lineTo(tw + 1, 1.8);
-          sctx.stroke();
-        }
-
-        sctx.restore();
-      }
-    });
-
-    const strapLeatherTex = new THREE.CanvasTexture(strapCanvas);
-    strapLeatherTex.wrapS = THREE.RepeatWrapping;
-    strapLeatherTex.wrapT = THREE.RepeatWrapping;
-    strapLeatherTex.repeat.set(1, 2.5);
-
-    // Bump Map for physical light interaction on scales and stitches
-    const bumpCanvas = document.createElement('canvas');
-    bumpCanvas.width = 512;
-    bumpCanvas.height = 512;
-    const bctx = bumpCanvas.getContext('2d');
-    bctx.fillStyle = '#606060';
-    bctx.fillRect(0, 0, 512, 512);
-
-    // Scale valleys
-    bctx.fillStyle = '#202020';
-    for (let r = 0; r < 20; r++) {
-      bctx.fillRect(0, r * (512 / 20), 512, 2.5);
-    }
-    for (let c = 0; c < 8; c++) {
-      bctx.fillRect(c * (512 / 8), 0, 2.5, 512);
-    }
-    // Raised stitches in bump map
-    bctx.fillStyle = '#e8e8e8';
-    [27, 485].forEach(bx => {
-      for (let by = 7; by < 512; by += 14) {
-        bctx.save();
-        bctx.translate(bx, by);
-        bctx.rotate(0.42);
-        bctx.fillRect(-5, -1.2, 10, 2.4);
-        bctx.restore();
-      }
-    });
-    const strapLeatherBump = new THREE.CanvasTexture(bumpCanvas);
-    strapLeatherBump.wrapS = THREE.RepeatWrapping;
-    strapLeatherBump.wrapT = THREE.RepeatWrapping;
-    strapLeatherBump.repeat.set(1, 2.5);
 
     // 5. Rehaut / Chapter Ring Track Texture
     const rehautCanvas = document.createElement('canvas');
@@ -372,7 +215,7 @@ class WatchModelBuilder {
     }
     const aventurineTex = new THREE.CanvasTexture(avCanvas);
 
-    return { genevaTex, perlageTex, radialTex, strapLeatherTex, strapLeatherBump, rehautTex, meteoriteTex, aventurineTex };
+    return { genevaTex, perlageTex, radialTex, rehautTex, meteoriteTex, aventurineTex };
   }
 
   createMaterials(modelKey) {
@@ -574,32 +417,6 @@ class WatchModelBuilder {
         roughness: 0.22,
         map: this.textures.radialTex
       }),
-      strap: new THREE.MeshStandardMaterial({
-        color: strapColor,
-        roughness: (modelKey === 'PHANTOM_CERAMIC') ? 0.35 : 0.46,
-        metalness: (modelKey === 'PHANTOM_CERAMIC') ? 0.40 : 0.12,
-        map: (modelKey === 'PHANTOM_CERAMIC') ? null : this.textures.strapLeatherTex,
-        bumpMap: (modelKey === 'PHANTOM_CERAMIC') ? null : this.textures.strapLeatherBump,
-        bumpScale: 0.08
-      }),
-      strapLining: new THREE.MeshStandardMaterial({
-        color: 0x7c7062, // Soft nubuck calfskin leather lining
-        roughness: 0.88,
-        metalness: 0.05
-      }),
-      strapStitch: new THREE.MeshStandardMaterial({
-        color: stitchColor,
-        roughness: 0.85,
-        metalness: 0.04
-      }),
-      claspBlade: new THREE.MeshStandardMaterial({
-        color: 0xd8dde5,
-        metalness: 0.94,
-        roughness: 0.20,
-        map: this.textures.perlageTex,
-        bumpMap: this.textures.perlageTex,
-        bumpScale: 0.04
-      }),
       dialAccent: new THREE.MeshStandardMaterial({
         color: dialAccentColor,
         map: dialMap,
@@ -741,10 +558,9 @@ class WatchModelBuilder {
     this.buildLayer11_Mainplate();
     this.buildLayer12_Rotor();
     this.buildLayer13_Caseback();
-    this.buildLayer14_CaseAndStrap();
+    this.buildLayer14_Case();
 
     this.applyExplosionProgress(0);
-    this.setClaspProgress(0.0);
   }
 
   registerLayer(layerObj) {
@@ -1595,8 +1411,8 @@ class WatchModelBuilder {
     });
   }
 
-  // 14. CASE CHASSIS, CROWN, PUSHERS & BRACELET
-  buildLayer14_CaseAndStrap() {
+  // 14. MONOBLOC TITANIUM CASE CHASSIS, CROWN & CHRONO PUSHERS
+  buildLayer14_Case() {
     const group = new THREE.Group();
     group.name = 'Layer_Case';
 
@@ -1656,342 +1472,35 @@ class WatchModelBuilder {
       group.add(pusher);
     });
 
-    // --- REALISTIC HAUTE HORLOGERIE ALLIGATOR STRAP & BUTTERFLY DEPLOYANT CLASP ---
-
-    // 1. Flush Curved Lug Integration End-Links ("Blocked Integration" hugging 42mm case cylinder)
-    const createCurvedLugEnd = (isTop) => {
-      const endGroup = new THREE.Group();
-      const sign = isTop ? 1 : -1;
-      endGroup.position.set(0, sign * 36.0, -3.5);
-
-      // Blocked flush end-link insert matching case radius R=36.0 between lugs
-      const insertShape = new THREE.Shape();
-      const w = 27.0;
-      const hw = w * 0.5;
-      const depth = 3.6;
-
-      insertShape.moveTo(-hw, 0);
-      insertShape.lineTo(hw, 0);
-      insertShape.lineTo(hw, sign * depth);
-      insertShape.quadraticCurveTo(0, sign * (depth + 1.2), -hw, sign * depth);
-      insertShape.closePath();
-
-      const insertGeom = new THREE.ExtrudeGeometry(insertShape, { depth: 4.8, bevelEnabled: true, bevelSize: 0.3, bevelThickness: 0.3 });
-      insertGeom.center();
-      const insertMesh = new THREE.Mesh(insertGeom, this.materials.caseMetal);
-      insertMesh.castShadow = true;
-      endGroup.add(insertMesh);
+    // Precision Polished Steel Spring-Bars between Case Lug Horns
+    [1, -1].forEach(sign => {
+      const springBarGeom = new THREE.CylinderGeometry(0.85, 0.85, 27.5, 16);
+      springBarGeom.rotateZ(Math.PI / 2);
+      const springBar = new THREE.Mesh(springBarGeom, this.materials.polishedSteel);
+      springBar.position.set(0, sign * 34.5, -3.5);
+      springBar.castShadow = true;
+      group.add(springBar);
 
       // Spring-bar pivot screw heads on outer lug horns (X = +/- 14.2)
       [-14.2, 14.2].forEach(px => {
         const screwHead = this.createScrew(0.85, 1.4);
-        screwHead.position.set(px, 0, 0);
+        screwHead.position.set(px, sign * 34.5, -3.5);
         screwHead.rotation.y = Math.PI / 2;
-        endGroup.add(screwHead);
+        group.add(screwHead);
       });
-
-      return endGroup;
-    };
-
-    group.add(createCurvedLugEnd(true));
-    group.add(createCurvedLugEnd(false));
-
-    // 2. Realistic Bombé Padded Leather Strap Segments (Louisiana Alligator with Nubuck Lining & Saddle Stitches)
-    const createPaddedSegment = (width, length, thickness, angle, pos, isBottom, segmentIndex) => {
-      const segmentGroup = new THREE.Group();
-      segmentGroup.position.copy(pos);
-      segmentGroup.rotation.x = angle;
-
-      const edgeThickness = thickness * 0.45;
-      const centerThickness = thickness;
-      const hw = width * 0.5;
-
-      // A. Bombé Padded Upper Leather Cushion (Alligator skin with scale texture and bump mapping)
-      const cushionShape = new THREE.Shape();
-      cushionShape.moveTo(-hw, 0);
-      cushionShape.lineTo(-hw, edgeThickness);
-      cushionShape.quadraticCurveTo(0, centerThickness * 1.05, hw, edgeThickness);
-      cushionShape.lineTo(hw, 0);
-      cushionShape.closePath();
-
-      const extrudeSettings = {
-        depth: length,
-        bevelEnabled: true,
-        bevelSegments: 2,
-        steps: 1,
-        bevelSize: 0.35,
-        bevelThickness: 0.35
-      };
-
-      const cushionGeom = new THREE.ExtrudeGeometry(cushionShape, extrudeSettings);
-      cushionGeom.center();
-      const cushionMesh = new THREE.Mesh(cushionGeom, this.materials.strap);
-      cushionMesh.castShadow = true;
-      cushionMesh.receiveShadow = true;
-      segmentGroup.add(cushionMesh);
-
-      // B. Soft Nubuck / Alsavel Calfskin Lining on underside (wrist contact surface)
-      const liningGeom = new THREE.BoxGeometry(width * 0.96, length * 0.98, 0.45);
-      const liningMesh = new THREE.Mesh(liningGeom, this.materials.strapLining);
-      liningMesh.position.z = -0.25;
-      liningMesh.receiveShadow = true;
-      segmentGroup.add(liningMesh);
-
-      // C. Edge-painted lacquer borders (Tranches teintées à la main)
-      const borderThickness = 0.5;
-      const borderGeom = new THREE.BoxGeometry(borderThickness, length * 0.98, edgeThickness * 1.1);
-
-      const leftBorder = new THREE.Mesh(borderGeom, this.materials.strap);
-      leftBorder.position.x = -hw + borderThickness * 0.5;
-      segmentGroup.add(leftBorder);
-
-      const rightBorder = new THREE.Mesh(borderGeom, this.materials.strap);
-      rightBorder.position.x = hw - borderThickness * 0.5;
-      segmentGroup.add(rightBorder);
-
-      // D. Physical French Linen Saddle Stitches (Couture Sellier à la main slanted at 25°)
-      const stitchMargin = 1.35;
-      const stitchCount = Math.max(3, Math.floor(length / 2.2));
-      const stitchStep = length / (stitchCount + 1);
-      const stitchMat = this.materials.strapStitch || this.materials.screws;
-
-      for (let s = 1; s <= stitchCount; s++) {
-        const sy = -length * 0.5 + s * stitchStep;
-
-        const leftStitchGeom = new THREE.BoxGeometry(0.38, 1.25, 0.28);
-        const leftStitch = new THREE.Mesh(leftStitchGeom, stitchMat);
-        leftStitch.position.set(-hw + stitchMargin, sy, edgeThickness * 0.85);
-        leftStitch.rotation.z = 0.44; // 25 degree saddle slant
-        segmentGroup.add(leftStitch);
-
-        const rightStitchGeom = new THREE.BoxGeometry(0.38, 1.25, 0.28);
-        const rightStitch = new THREE.Mesh(rightStitchGeom, stitchMat);
-        rightStitch.position.set(hw - stitchMargin, sy, edgeThickness * 0.85);
-        rightStitch.rotation.z = -0.44;
-        segmentGroup.add(rightStitch);
-      }
-
-      // E. Precision Laser-Punched Adjustment Holes on lower strap tongue
-      if (isBottom && segmentIndex >= 3 && segmentIndex <= 5) {
-        const holeGeom = new THREE.CylinderGeometry(0.85, 0.85, centerThickness * 1.4, 16);
-        holeGeom.rotateX(Math.PI / 2);
-        const holeMesh = new THREE.Mesh(holeGeom, this.materials.caseMetal);
-        holeMesh.position.set(0, 0, centerThickness * 0.4);
-        segmentGroup.add(holeMesh);
-      }
-
-      return segmentGroup;
-    };
-
-    // Stitched Leather Keeper Loops (Passants)
-    const createKeeper = (width, thickness, pos, rotX) => {
-      const keeperGroup = new THREE.Group();
-      keeperGroup.position.copy(pos);
-      keeperGroup.rotation.x = rotX;
-
-      const kw = width + 2.2;
-      const kh = thickness + 2.0;
-      const kl = 3.4;
-
-      const outerGeom = new THREE.BoxGeometry(kw, kl, kh);
-      const outerMesh = new THREE.Mesh(outerGeom, this.materials.strap);
-      outerMesh.castShadow = true;
-      keeperGroup.add(outerMesh);
-
-      const innerGeom = new THREE.BoxGeometry(width + 0.2, kl * 1.02, thickness + 0.2);
-      const innerMesh = new THREE.Mesh(innerGeom, this.materials.strapLining);
-      keeperGroup.add(innerMesh);
-
-      const kStitchGeom = new THREE.BoxGeometry(0.3, kl * 0.8, 0.2);
-      const stitchMat = this.materials.strapStitch || this.materials.screws;
-      [-kw * 0.45, kw * 0.45].forEach(kx => {
-        const kStitch = new THREE.Mesh(kStitchGeom, stitchMat);
-        kStitch.position.set(kx, 0, kh * 0.5);
-        keeperGroup.add(kStitch);
-      });
-
-      return keeperGroup;
-    };
-
-    // TOP STRAP ASSEMBLY (8 Articulated Bombé Segments, 27mm tapering to 19.5mm)
-    const topStrapGroup = new THREE.Group();
-    const topLinkCount = 8;
-    for (let i = 0; i < topLinkCount; i++) {
-      const u = i / (topLinkCount - 1);
-      const theta = u * 1.45;
-      const y = 36.0 * Math.cos(theta) + 0.5;
-      const z = -3.5 - 32.0 * Math.sin(theta);
-      const w = 27.0 - u * 7.5; // Tapers from 27mm down to 19.5mm
-      const th = 4.8 - u * 2.0; // Bombé padding: 4.8mm skived down to 2.8mm
-      const tilt = -u * 1.48;
-      const seg = createPaddedSegment(w, 8.2, th, tilt, new THREE.Vector3(0, y, z), false, i);
-      topStrapGroup.add(seg);
-    }
-    group.add(topStrapGroup);
-
-    // BOTTOM STRAP ASSEMBLY (8 Articulated Bombé Segments with Keepers & Sizing Holes)
-    const bottomStrapGroup = new THREE.Group();
-    const bottomLinkCount = 8;
-    for (let i = 0; i < bottomLinkCount; i++) {
-      const u = i / (bottomLinkCount - 1);
-      const theta = u * 1.45;
-      const y = -(36.0 * Math.cos(theta) + 0.5);
-      const z = -3.5 - 32.0 * Math.sin(theta);
-      const w = 27.0 - u * 7.5;
-      const th = 4.8 - u * 2.0;
-      const tilt = u * 1.48;
-      const seg = createPaddedSegment(w, 8.2, th, tilt, new THREE.Vector3(0, y, z), true, i);
-      bottomStrapGroup.add(seg);
-    }
-
-    // Add Fixed and Floating Leather Keepers near bottom strap clasp end
-    const fixedKeeper = createKeeper(20.5, 3.2, new THREE.Vector3(0, -9.5, -34.8), 1.35);
-    bottomStrapGroup.add(fixedKeeper);
-
-    const floatingKeeper = createKeeper(21.0, 3.4, new THREE.Vector3(0, -17.5, -31.5), 1.15);
-    bottomStrapGroup.add(floatingKeeper);
-
-    group.add(bottomStrapGroup);
-
-    // 3. BUTTERFLY DEPLOYANT CLASP (Boucle Déployante Papillon Haute Horlogerie)
-    const claspGroup = new THREE.Group();
-    claspGroup.position.set(0, 0, -35.8);
-
-    // Center Clasp Outer Cap Bridge (Pont Supérieur Ergonomique)
-    const claspCapGroup = new THREE.Group();
-    const capBodyShape = new THREE.Shape();
-    capBodyShape.moveTo(-11.5, -6.5);
-    capBodyShape.lineTo(11.5, -6.5);
-    capBodyShape.lineTo(11.5, 6.5);
-    capBodyShape.lineTo(-11.5, 6.5);
-    capBodyShape.closePath();
-
-    const capBodyGeom = new THREE.ExtrudeGeometry(capBodyShape, { depth: 3.4, bevelEnabled: true, bevelSize: 0.5, bevelThickness: 0.5 });
-    capBodyGeom.center();
-    const capBody = new THREE.Mesh(capBodyGeom, this.materials.caseMetal);
-    capBody.castShadow = true;
-    claspCapGroup.add(capBody);
-
-    // Laser-Engraved 18K Gold Signature Medallion on Clasp Face ("AURELIA • GENÈVE")
-    const medallionGeom = new THREE.BoxGeometry(16.5, 7.5, 0.7);
-    const medallion = new THREE.Mesh(medallionGeom, this.materials.goldChaton);
-    medallion.position.z = -1.75;
-    claspCapGroup.add(medallion);
-
-    // Dual Ergonomic Spring-Loaded Lateral Release Pushers on Clasp Flanks
-    const pusherLeftGeom = new THREE.CylinderGeometry(1.7, 1.7, 2.4, 16);
-    pusherLeftGeom.rotateZ(Math.PI / 2);
-    const pusherLeft = new THREE.Mesh(pusherLeftGeom, this.materials.caseMetal);
-    pusherLeft.position.set(-12.0, 0, 0);
-    claspCapGroup.add(pusherLeft);
-
-    const pusherRightGeom = new THREE.CylinderGeometry(1.7, 1.7, 2.4, 16);
-    pusherRightGeom.rotateZ(Math.PI / 2);
-    const pusherRight = new THREE.Mesh(pusherRightGeom, this.materials.caseMetal);
-    pusherRight.position.set(12.0, 0, 0);
-    claspCapGroup.add(pusherRight);
-
-    claspGroup.add(claspCapGroup);
-
-    // Top Articulated Folding Blade (Perlage finished, S-curved, hinges to center cap)
-    const topBladeGroup = new THREE.Group();
-    topBladeGroup.position.set(0, 3.4, 1.2);
-
-    const bladeArmGeom1 = new THREE.BoxGeometry(14.5, 13.0, 1.6);
-    const bladeArm1 = new THREE.Mesh(bladeArmGeom1, this.materials.claspBlade);
-    bladeArm1.position.set(0, 6.5, 0);
-    bladeArm1.castShadow = true;
-    topBladeGroup.add(bladeArm1);
-
-    // Skeletonized circular apertures inside blade
-    [-3.5, 3.5].forEach(ax => {
-      const cutGeom = new THREE.CylinderGeometry(1.6, 1.6, 1.8, 16);
-      cutGeom.rotateX(Math.PI / 2);
-      const cut = new THREE.Mesh(cutGeom, this.materials.mainplate);
-      cut.position.set(ax, 6.5, 0);
-      topBladeGroup.add(cut);
     });
-
-    // Precision Hinge Knuckles & Steel Pivot Pin
-    const hinge1Geom = new THREE.CylinderGeometry(1.15, 1.15, 15.0, 16);
-    hinge1Geom.rotateZ(Math.PI / 2);
-    const hinge1 = new THREE.Mesh(hinge1Geom, this.materials.polishedSteel);
-    topBladeGroup.add(hinge1);
-
-    const distalHinge1 = new THREE.Mesh(hinge1Geom, this.materials.polishedSteel);
-    distalHinge1.position.set(0, 13.0, 0);
-    topBladeGroup.add(distalHinge1);
-
-    // Top Strap Locking Hood
-    const hoodGeom1 = new THREE.BoxGeometry(18.5, 3.6, 2.6);
-    const hood1 = new THREE.Mesh(hoodGeom1, this.materials.caseMetal);
-    hood1.position.set(0, 13.0, 0);
-    topBladeGroup.add(hood1);
-
-    claspGroup.add(topBladeGroup);
-
-    // Bottom Articulated Folding Blade (Perlage finished, S-curved, hinges to center cap)
-    const bottomBladeGroup = new THREE.Group();
-    bottomBladeGroup.position.set(0, -3.4, 1.2);
-
-    const bladeArmGeom2 = new THREE.BoxGeometry(14.5, 13.0, 1.6);
-    const bladeArm2 = new THREE.Mesh(bladeArmGeom2, this.materials.claspBlade);
-    bladeArm2.position.set(0, -6.5, 0);
-    bladeArm2.castShadow = true;
-    bottomBladeGroup.add(bladeArm2);
-
-    [-3.5, 3.5].forEach(ax => {
-      const cutGeom = new THREE.CylinderGeometry(1.6, 1.6, 1.8, 16);
-      cutGeom.rotateX(Math.PI / 2);
-      const cut = new THREE.Mesh(cutGeom, this.materials.mainplate);
-      cut.position.set(ax, -6.5, 0);
-      bottomBladeGroup.add(cut);
-    });
-
-    const hinge2 = new THREE.Mesh(hinge1Geom, this.materials.polishedSteel);
-    bottomBladeGroup.add(hinge2);
-
-    const distalHinge2 = new THREE.Mesh(hinge1Geom, this.materials.polishedSteel);
-    distalHinge2.position.set(0, -13.0, 0);
-    bottomBladeGroup.add(distalHinge2);
-
-    // Bottom Strap Locking Hood with Sizing Pin
-    const hoodGeom2 = new THREE.BoxGeometry(18.5, 3.6, 2.6);
-    const hood2 = new THREE.Mesh(hoodGeom2, this.materials.caseMetal);
-    hood2.position.set(0, -13.0, 0);
-    bottomBladeGroup.add(hood2);
-
-    // Clasp micro-adjust pin locking into strap sizing hole
-    const pinGeom = new THREE.CylinderGeometry(0.8, 0.8, 2.8, 12);
-    const claspPin = new THREE.Mesh(pinGeom, this.materials.screws);
-    claspPin.position.set(0, -13.0, -1.2);
-    bottomBladeGroup.add(claspPin);
-
-    claspGroup.add(bottomBladeGroup);
-    group.add(claspGroup);
-
-    // Store references for interactive open/close kinematics slider
-    this.claspNodes = {
-      topStrap: topStrapGroup,
-      bottomStrap: bottomStrapGroup,
-      topBlade: topBladeGroup,
-      bottomBlade: bottomBladeGroup,
-      pusherLeft: pusherLeft,
-      pusherRight: pusherRight,
-      claspCap: claspCapGroup
-    };
 
     this.registerLayer({
       id: 'layer_case',
-      name: 'Sculpted Monobloc Case & Haute Horlogerie Alligator Strap',
-      frenchName: 'Boîtier Monobloc & Bracelet Alligator à Boucle Déployante',
+      name: 'Sculpted Monobloc Titanium Case',
+      frenchName: 'Boîtier Monobloc en Titane de Haute Horlogerie',
       category: 'Chassis & Ergonomics',
-      materialDesc: '42mm Grade 5 Titanium Chassis • Hand-Stitched Louisiana Alligator • Nubuck Lining',
-      specs: 'Bombé Skiving • Couture Sellier Linen Stitches • Double-Folding Butterfly Clasp',
-      description: 'Crafted from aircraft-grade titanium with blocked curved lug integration, hand-stitched Louisiana alligator leather with soft nubuck lining, and an articulated double-folding butterfly deployant clasp.',
+      materialDesc: '42mm Grade 5 Titanium Monobloc Chassis • Fluted Crown • Dual Pushers',
+      specs: 'Aerospace Grade 5 Titanium • Ergonomic Curvature • Sapphire Caseback Mount',
+      description: 'Crafted from aircraft-grade Grade 5 titanium with hand-finished chamfers, ergonomic fluted winding crown, and dual chronograph pushers.',
       group: group,
       baseZ: 0,
-      explodeZ: -125,
+      explodeZ: 0,
       offsetX: 0,
       offsetY: 0
     });
@@ -2054,42 +1563,8 @@ class WatchModelBuilder {
     });
   }
 
-  // --- BRACELET BUTTERFLY DEPLOYANT CLASP KINEMATICS ---
-  setClaspProgress(progress) {
-    this.claspProgress = Math.max(0, Math.min(1, progress));
-    const t = this.claspProgress;
-    if (!this.claspNodes) return;
-
-    // 1. Butterfly folding blades pivot outward on center hinges
-    const bladeAngle = t * 1.15; // ~66 degrees outward sweep
-    if (this.claspNodes.topBlade) {
-      this.claspNodes.topBlade.rotation.x = bladeAngle;
-    }
-    if (this.claspNodes.bottomBlade) {
-      this.claspNodes.bottomBlade.rotation.x = -bladeAngle;
-    }
-
-    // 2. Strap halves expand outward along Y and Z
-    if (this.claspNodes.topStrap) {
-      this.claspNodes.topStrap.position.y = t * 10.0;
-      this.claspNodes.topStrap.position.z = -t * 14.5;
-      this.claspNodes.topStrap.rotation.x = t * 0.32;
-    }
-    if (this.claspNodes.bottomStrap) {
-      this.claspNodes.bottomStrap.position.y = -t * 10.0;
-      this.claspNodes.bottomStrap.position.z = -t * 14.5;
-      this.claspNodes.bottomStrap.rotation.x = -t * 0.32;
-    }
-
-    // 3. Lateral push-buttons depress slightly during unlatching motion
-    const pusherDepress = Math.sin(t * Math.PI) * 1.1;
-    if (this.claspNodes.pusherLeft) {
-      this.claspNodes.pusherLeft.position.x = -11.5 + pusherDepress;
-    }
-    if (this.claspNodes.pusherRight) {
-      this.claspNodes.pusherRight.position.x = 11.5 - pusherDepress;
-    }
-  }
+  // (Strap & butterfly clasp removed as requested)
+  setClaspProgress(progress) {}
 
   isolateLayer(layerId) {
     this.explodedLayers.forEach(l => {

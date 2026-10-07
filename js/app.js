@@ -74,7 +74,7 @@ class HorologyApp {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // Studio floor circular pedestal
+    // Studio floor circular pedestal (Removed completely from scene as requested)
     const floorGeom = new THREE.CylinderGeometry(65, 65, 2, 64);
     this.floorMat = new THREE.MeshStandardMaterial({
       color: 0x06070a,
@@ -83,8 +83,9 @@ class HorologyApp {
     });
     this.floor = new THREE.Mesh(floorGeom, this.floorMat);
     this.floor.position.set(0, -60, 0);
-    this.floor.receiveShadow = true;
-    this.scene.add(this.floor);
+    this.floor.receiveShadow = false;
+    this.floor.visible = false;
+    // this.floor is hidden completely so the watch floats cleanly in studio ambiance without dark disc platform
   }
 
   initLighting() {
@@ -121,10 +122,6 @@ class HorologyApp {
     this.accentPoint2.position.set(-15, 15, 25);
     this.scene.add(this.accentPoint2);
 
-    // Soft underside illumination for the bracelet loop and butterfly deployant clasp
-    this.claspLight = new THREE.DirectionalLight(0xfff0dd, 1.3);
-    this.claspLight.position.set(0, -60, -50);
-    this.scene.add(this.claspLight);
   }
 
   initWatch() {
@@ -337,7 +334,6 @@ class HorologyApp {
 
     // Mobile Floating Quick Dock Buttons
     const dockViewsBtn = document.getElementById('dock-btn-views');
-    const dockClaspBtn = document.getElementById('dock-btn-clasp');
     const dockSpeedBtn = document.getElementById('dock-btn-speed');
     const dockAmbianceBtn = document.getElementById('dock-btn-ambiance');
 
@@ -346,14 +342,6 @@ class HorologyApp {
         openLeftDrawer();
         const vantagePanel = document.querySelector('.view-button-list');
         if (vantagePanel) vantagePanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      });
-    }
-
-    if (dockClaspBtn) {
-      dockClaspBtn.addEventListener('click', () => {
-        openLeftDrawer();
-        const claspPanel = document.getElementById('clasp-slider');
-        if (claspPanel) claspPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
     }
 
@@ -552,79 +540,6 @@ class HorologyApp {
       });
     }
 
-    // 10. Butterfly Deployant Clasp Controls & Slider
-    const claspToggleBtn = document.getElementById('btn-clasp-toggle');
-    const claspSlider = document.getElementById('clasp-slider');
-    const claspBadge = document.getElementById('clasp-status-badge');
-    const claspPct = document.getElementById('clasp-percentage');
-    const claspIcon = document.getElementById('clasp-icon');
-    const claspBtnLabel = document.getElementById('clasp-btn-label');
-
-    const updateClaspUI = (val) => {
-      const pct = Math.round(val * 100);
-      if (claspSlider) claspSlider.value = pct;
-      if (claspPct) claspPct.textContent = `${pct}%`;
-      if (claspBadge) {
-        if (pct === 0) {
-          claspBadge.textContent = 'LATCHED';
-          claspBadge.className = 'clasp-badge latched';
-        } else if (pct === 100) {
-          claspBadge.textContent = 'DEPLOYED';
-          claspBadge.className = 'clasp-badge deployed';
-        } else {
-          claspBadge.textContent = `${pct}% OPEN`;
-          claspBadge.className = 'clasp-badge in-motion';
-        }
-      }
-      if (claspIcon && claspBtnLabel) {
-        if (val > 0.5) {
-          claspIcon.textContent = '🔒';
-          claspBtnLabel.textContent = 'Latch Clasp';
-        } else {
-          claspIcon.textContent = '🔓';
-          claspBtnLabel.textContent = 'Deploy Clasp';
-        }
-      }
-    };
-
-    if (claspSlider) {
-      claspSlider.addEventListener('input', (e) => {
-        const val = parseFloat(e.target.value) / 100;
-        this.watch.setClaspProgress(val);
-        updateClaspUI(val);
-      });
-      claspSlider.addEventListener('change', (e) => {
-        const val = parseFloat(e.target.value) / 100;
-        if (window.HorologyAudio && window.HorologyAudio.playClaspClick) {
-          window.HorologyAudio.playClaspClick(val > 0.5);
-        }
-      });
-    }
-
-    if (claspToggleBtn) {
-      claspToggleBtn.addEventListener('click', () => {
-        const current = this.watch.claspProgress;
-        const target = current > 0.3 ? 0.0 : 1.0;
-        if (window.HorologyAudio && window.HorologyAudio.playClaspClick) {
-          window.HorologyAudio.playClaspClick(target > 0.5);
-        }
-        if (typeof gsap !== 'undefined') {
-          const proxy = { p: current };
-          gsap.to(proxy, {
-            p: target,
-            duration: 1.0,
-            ease: 'power2.inOut',
-            onUpdate: () => {
-              this.watch.setClaspProgress(proxy.p);
-              updateClaspUI(proxy.p);
-            }
-          });
-        } else {
-          this.watch.setClaspProgress(target);
-          updateClaspUI(target);
-        }
-      });
-    }
 
     // 11. Quick Layer Navigation Pills
     this.populateLayerPills();
@@ -691,7 +606,7 @@ class HorologyApp {
       },
       'MONACO_RACING': {
         name: 'Calibre 06: Monaco Grand Prix Chrono',
-        subtitle: 'Gulf Racing Orange & Cyan Livery • Perforated Rally Strap',
+        subtitle: 'Gulf Racing Orange & Cyan Livery • Titanium Chronograph',
         case: '316L Satin Steel & Ceramic Bezel',
         finish: 'Orange Column Wheel & Panda Registers',
         water: '100 Meters (10 ATM)'
@@ -830,10 +745,6 @@ class HorologyApp {
         case 'b': this.setCameraView('caseback'); break;
         case 'p': this.setCameraView('profile'); break;
         case 'r': this.resetCamera(); break;
-        case 'c':
-          const claspToggle = document.getElementById('btn-clasp-toggle');
-          if (claspToggle) claspToggle.click();
-          break;
         case 'm':
           const soundToggle = document.getElementById('sound-toggle');
           if (soundToggle) soundToggle.click();
